@@ -94,3 +94,16 @@ c.
 3. 运行截图
 
 ![orbslam](./doc/orbslam.png)
+
+体会：
+
+* 环境的配置很复杂，而且orbslam的代码感觉偏老。
+
+* 我之前一直在ubuntu20.04和对应的noetic上操作。感觉melodic的结构有很大不一样（至少
+三个devel/ build/ src/ 位置不同）。
+
+* 在rosrun的时候，很奇怪没有node在运行，感觉orb只是拿ros做了个入口用来启动。
+
+* 另外很惊讶运行myvideo消耗的资源非常少
+
+* 在编译的时候有很多warn，推测是repo太老的原因
