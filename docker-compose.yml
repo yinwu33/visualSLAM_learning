@@ -1,0 +1,15 @@
+version: "3.4"
+services:
+  kinetic:
+    build: 
+      context: docker
+      dockerfile: Dockerfile
+      network: host
+    container_name: visual_slam
+    image: visual_slam:kinetic
+    volumes:
+      - ./workspace:/home/ubuntu/workspace
+      - ./docs:/home/ubuntu/docs
+    ports:
+      - 40080:80
+      - 45901:5901

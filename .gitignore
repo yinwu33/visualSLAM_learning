@@ -2,3 +2,6 @@ build/
 devel/
 
 docs/
+
+*.zip
+*.rar

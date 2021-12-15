@@ -133,10 +133,17 @@ void IMU::testImu(std::string src, std::string dist)
     Eigen::Vector3d gw(0,0,-9.81);    // ENU frame
     Eigen::Vector3d temp_a;
     Eigen::Vector3d theta;
+
+    // // TODO
+    // Eigen::Vector3d w_last = imudata[0].imu_gyro;
+    // Eigen::Vector3d a_last = imudata[0].imu_acc;
+    // Eigen::Quaterniond Qwb_last(Qwb);
+    // // TODO END
     for (int i = 1; i < imudata.size(); ++i) {
 
         MotionData imupose = imudata[i];
 
+        // * Original Code
         //delta_q = [1 , 1/2 * thetax , 1/2 * theta_y, 1/2 * theta_z]
         Eigen::Quaterniond dq;
         Eigen::Vector3d dtheta_half =  imupose.imu_gyro * dt /2.0;
@@ -151,8 +158,33 @@ void IMU::testImu(std::string src, std::string dist)
         Qwb = Qwb * dq;
         Pwb = Pwb + Vw * dt + 0.5 * dt * dt * acc_w;
         Vw = Vw + acc_w * dt;
+        // * Original Code End
         
-        /// 中值积分
+        // TODO
+        // /// 中值积分
+        // Eigen::Vector3d w_m = 0.5 * (imupose.imu_gyro + w_last);
+        // Eigen::Vector3d a_m = 0.5 * (Qwb_last * (a_last) + gw + Qwb * (imupose.imu_acc) + gw);
+
+        // Eigen::Quaterniond dq;
+        // Eigen::Vector3d dtheta_half = w_m * dt / 2.0;
+        // dq.w() = 1;
+        // dq.w() = 1;
+        // dq.x() = dtheta_half.x();
+        // dq.y() = dtheta_half.y();
+        // dq.z() = dtheta_half.z();
+        // dq.normalize();
+
+        // // memorize last parameters
+        // w_last = imupose.imu_gyro;
+        // a_last = imupose.imu_acc;
+        // Qwb_last = Qwb;
+
+        // Qwb = Qwb * dq;
+        // Pwb = Pwb + Vw * dt + 0.5 * dt * dt * a_m;
+        // Vw = Vw + a_m * dt;
+
+
+        // TODO END
 
         //　按着imu postion, imu quaternion , cam postion, cam quaternion 的格式存储，由于没有cam，所以imu存了两次
         save_points<<imupose.timestamp<<" "
