@@ -275,10 +275,49 @@ void Problem::RemoveLambdaHessianLM() {
         Hessian_(i, i) -= currentLambda_;
     }
 }
+// * Original method 3 according to the paper
+// bool Problem::IsGoodStepInLM() {
+//     double scale = 0;
+//     scale = delta_x_.transpose() * (currentLambda_ * delta_x_ + b_);
+//     scale += 1e-3;    // make sure it's non-zero :)
 
+//     // recompute residuals after update state
+//     // 统计所有的残差
+//     double tempChi = 0.0;
+//     for (auto edge: edges_) {
+//         edge.second->ComputeResidual();
+//         tempChi += edge.second->Chi2();
+//     }
+
+//     double rho = (currentChi_ - tempChi) / scale;
+//     if (rho > 0 && isfinite(tempChi))   // last step was good, 误差在下降
+//     {
+//         double alpha = 1. - pow((2 * rho - 1), 3);
+//         alpha = std::min(alpha, 2. / 3.);
+//         double scaleFactor = (std::max)(1. / 3., alpha);
+//         currentLambda_ *= scaleFactor;
+//         ni_ = 2;
+//         currentChi_ = tempChi;
+//         return true;
+//     } else {
+//         currentLambda_ *= ni_;
+//         ni_ *= 2;
+//         return false;
+//     }
+// }
+// * Original END
+
+// TODO new update method 1
 bool Problem::IsGoodStepInLM() {
+    Vec3 diagonal = Hessian_.diagonal();
+    Mat33 Hessian_diagonal;
+    Hessian_diagonal << diagonal(0), 0, 0,
+                        0, diagonal(1), 0,
+                        0, 0, diagonal(2);
+
     double scale = 0;
-    scale = delta_x_.transpose() * (currentLambda_ * delta_x_ + b_);
+    // scale = delta_x_.transpose() * (currentLambda_ * maxDiagonal * delta_x_ + b_);
+    scale = delta_x_.transpose() * (currentLambda_ * Hessian_diagonal * delta_x_ + b_);
     scale += 1e-3;    // make sure it's non-zero :)
 
     // recompute residuals after update state
@@ -292,19 +331,15 @@ bool Problem::IsGoodStepInLM() {
     double rho = (currentChi_ - tempChi) / scale;
     if (rho > 0 && isfinite(tempChi))   // last step was good, 误差在下降
     {
-        double alpha = 1. - pow((2 * rho - 1), 3);
-        alpha = std::min(alpha, 2. / 3.);
-        double scaleFactor = (std::max)(1. / 3., alpha);
-        currentLambda_ *= scaleFactor;
-        ni_ = 2;
+        currentLambda_ = (std::max)(currentLambda_/9., 10e-7);
         currentChi_ = tempChi;
         return true;
     } else {
-        currentLambda_ *= ni_;
-        ni_ *= 2;
+        currentLambda_ = (std::min)(currentLambda_*11., 10e+7);
         return false;
     }
 }
+// TODO END
 
 /** @brief conjugate gradient with perconditioning
 *
