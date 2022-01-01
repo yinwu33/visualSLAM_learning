@@ -16,6 +16,7 @@ using namespace std;
 
 namespace myslam {
 namespace backend {
+static int method = 3;
 void Problem::LogoutVectorSize() {
     // LOG(INFO) <<
     //           "1 problem::LogoutVectorSize verticies_:" << verticies_.size() <<
@@ -237,26 +238,48 @@ void Problem::RollbackStates() {
 
 /// LM
 void Problem::ComputeLambdaInitLM() {
-    ni_ = 2.;
-    currentLambda_ = -1.;
-    currentChi_ = 0.0;
-    // TODO:: robust cost chi2
-    for (auto edge: edges_) {
-        currentChi_ += edge.second->Chi2();
-    }
-    if (err_prior_.rows() > 0)
-        currentChi_ += err_prior_.norm();
+    if (method == 3) {
+        // * Original method 3
+        ni_ = 2.;
+        currentLambda_ = -1.;
+        currentChi_ = 0.0;
+        // TODO:: robust cost chi2
+        for (auto edge: edges_) {
+            currentChi_ += edge.second->Chi2();
+        }
+        if (err_prior_.rows() > 0)
+            currentChi_ += err_prior_.norm();
 
-    stopThresholdLM_ = 1e-6 * currentChi_;          // 迭代条件为 误差下降 1e-6 倍
+        stopThresholdLM_ = 1e-6 * currentChi_;          // 迭代条件为 误差下降 1e-6 倍
 
-    double maxDiagonal = 0;
-    ulong size = Hessian_.cols();
-    assert(Hessian_.rows() == Hessian_.cols() && "Hessian is not square");
-    for (ulong i = 0; i < size; ++i) {
-        maxDiagonal = std::max(fabs(Hessian_(i, i)), maxDiagonal);
+        double maxDiagonal = 0;
+        ulong size = Hessian_.cols();
+        assert(Hessian_.rows() == Hessian_.cols() && "Hessian is not square");
+        for (ulong i = 0; i < size; ++i) {
+            maxDiagonal = std::max(fabs(Hessian_(i, i)), maxDiagonal);
+        }
+        double tau = 1e-5;
+        currentLambda_ = tau * maxDiagonal;
+        // * Original Method END
     }
-    double tau = 1e-5;
-    currentLambda_ = tau * maxDiagonal;
+    else if (method == 1 or method == 2) {
+        // TODO new init LM method 1
+        ni_ = 2.;
+        currentLambda_ = -1.;
+        currentChi_ = 0.0;
+        for (auto edge: edges_) {
+            currentChi_ += edge.second->Chi2();
+        }
+        if (err_prior_.rows() > 0)
+            currentChi_ += err_prior_.norm();
+
+        stopThresholdLM_ = 1e-6 * currentChi_;          // 迭代条件为 误差下降 1e-6 倍
+
+        currentLambda_ = 1e-5;
+        
+        // TODO END
+    }
+
 }
 
 void Problem::AddLambdatoHessianLM() {
@@ -275,71 +298,76 @@ void Problem::RemoveLambdaHessianLM() {
         Hessian_(i, i) -= currentLambda_;
     }
 }
-// * Original method 3 according to the paper
-// bool Problem::IsGoodStepInLM() {
-//     double scale = 0;
-//     scale = delta_x_.transpose() * (currentLambda_ * delta_x_ + b_);
-//     scale += 1e-3;    // make sure it's non-zero :)
-
-//     // recompute residuals after update state
-//     // 统计所有的残差
-//     double tempChi = 0.0;
-//     for (auto edge: edges_) {
-//         edge.second->ComputeResidual();
-//         tempChi += edge.second->Chi2();
-//     }
-
-//     double rho = (currentChi_ - tempChi) / scale;
-//     if (rho > 0 && isfinite(tempChi))   // last step was good, 误差在下降
-//     {
-//         double alpha = 1. - pow((2 * rho - 1), 3);
-//         alpha = std::min(alpha, 2. / 3.);
-//         double scaleFactor = (std::max)(1. / 3., alpha);
-//         currentLambda_ *= scaleFactor;
-//         ni_ = 2;
-//         currentChi_ = tempChi;
-//         return true;
-//     } else {
-//         currentLambda_ *= ni_;
-//         ni_ *= 2;
-//         return false;
-//     }
-// }
-// * Original END
-
-// TODO new update method 1
 bool Problem::IsGoodStepInLM() {
-    Vec3 diagonal = Hessian_.diagonal();
-    Mat33 Hessian_diagonal;
-    Hessian_diagonal << diagonal(0), 0, 0,
-                        0, diagonal(1), 0,
-                        0, 0, diagonal(2);
+    if (method == 3) {
+// * Original method 3 according to the paper
+        double scale = 0;
+        scale = delta_x_.transpose() * (currentLambda_ * delta_x_ + b_);
+        scale += 1e-3;    // make sure it's non-zero :)
 
-    double scale = 0;
-    // scale = delta_x_.transpose() * (currentLambda_ * maxDiagonal * delta_x_ + b_);
-    scale = delta_x_.transpose() * (currentLambda_ * Hessian_diagonal * delta_x_ + b_);
-    scale += 1e-3;    // make sure it's non-zero :)
+        // recompute residuals after update state
+        // 统计所有的残差
+        double tempChi = 0.0;
+        for (auto edge: edges_) {
+            edge.second->ComputeResidual();
+            tempChi += edge.second->Chi2();
+        }
 
-    // recompute residuals after update state
-    // 统计所有的残差
-    double tempChi = 0.0;
-    for (auto edge: edges_) {
-        edge.second->ComputeResidual();
-        tempChi += edge.second->Chi2();
+        double rho = (currentChi_ - tempChi) / scale;
+        if (rho > 0 && isfinite(tempChi))   // last step was good, 误差在下降
+        {
+            double alpha = 1. - pow((2 * rho - 1), 3);
+            alpha = std::min(alpha, 2. / 3.);
+            double scaleFactor = (std::max)(1. / 3., alpha);
+            currentLambda_ *= scaleFactor;
+            ni_ = 2;
+            currentChi_ = tempChi;
+            return true;
+        } else {
+            currentLambda_ *= ni_;
+            ni_ *= 2;
+            return false;
+        }
+// * Original END
     }
+    else if (method == 2) {
+        
+    }
+    else if (method == 1) {
+// TODO new update method 1
+        Vec3 diagonal = Hessian_.diagonal();
+        Mat33 Hessian_diagonal;
+        Hessian_diagonal << diagonal(0), 0, 0,
+                            0, diagonal(1), 0,
+                            0, 0, diagonal(2);
 
-    double rho = (currentChi_ - tempChi) / scale;
-    if (rho > 0 && isfinite(tempChi))   // last step was good, 误差在下降
-    {
-        currentLambda_ = (std::max)(currentLambda_/9., 10e-7);
-        currentChi_ = tempChi;
-        return true;
-    } else {
-        currentLambda_ = (std::min)(currentLambda_*11., 10e+7);
-        return false;
+        double scale = 0;
+        // scale = delta_x_.transpose() * (currentLambda_ * maxDiagonal * delta_x_ + b_);
+        scale = delta_x_.transpose() * (currentLambda_ * Hessian_diagonal * delta_x_ + b_);
+        scale += 1e-3;    // make sure it's non-zero :)
+
+        // recompute residuals after update state
+        // 统计所有的残差
+        double tempChi = 0.0;
+        for (auto edge: edges_) {
+            edge.second->ComputeResidual();
+            tempChi += edge.second->Chi2();
+        }
+
+        double rho = (currentChi_ - tempChi) / scale;
+        if (rho > 0 && isfinite(tempChi))   // last step was good, 误差在下降
+        {
+            currentLambda_ = (std::max)(currentLambda_/9., 10e-7);
+            currentChi_ = tempChi;
+            return true;
+        } else {
+            currentLambda_ = (std::min)(currentLambda_*11., 10e+7);
+            return false;
+        }
+// TODO END
     }
 }
-// TODO END
+
 
 /** @brief conjugate gradient with perconditioning
 *

@@ -117,3 +117,27 @@ bool Problem::IsGoodStepInLM() {
 # Task 2 & Task 3
 
 请参考[pdf](./docs/VIO_lesson_3.pdf)推导
+
+# 作业更正
+
+## Task 1
+
+之前未对method1的init部分修正。现在进行了修改。在`problem.cc`上方19行有一处代码，来控制method。（之前是通过注释来切换method）
+
+```c++
+static int method = 3;
+```
+
+我并没有应用method2，我有一个问题在这里：
+
+提供的框架在check is good step这个函数前，已经进行了update。如果不是goodStep则Rollback。对于论文中的方法2，需要先使用Chi2(p+h)来计算alpha，在用rho(alpha * h)来判断是否good。
+
+我思考了下，论文是先判断good再update，而代码中是先update，不好再rollback。所以方法2并不是很好实施。如果硬要实施需要反复update 或者rollback。
+
+所以我没有应用这个方法
+
+## Task 2
+
+针对推导的错误，已经按照ppt课件和批注进行修改。谢谢批改！
+
+我在这里也有个问题，关于delta_t是怎么从反对称矩阵里面移动到外面，我的理解是delta_t是标量，所以可以任意移动。所以我不明白为什么f15式(3)第5行到第6行叉乘的变换（deta t^2）的问题。

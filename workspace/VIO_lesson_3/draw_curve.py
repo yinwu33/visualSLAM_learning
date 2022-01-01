@@ -30,16 +30,16 @@ def draw_curve(xs, ys, zs):
   plt.plot(xs_array, ys_array, color="blue")
   plt.scatter(xs_array, ys_array, color="blue")
   
-  plt.plot(xs_array, zs_array/10, color="red")
-  plt.scatter(xs_array, zs_array/10, color="red")
+  # plt.plot(xs_array, zs_array, color="red")
+  # plt.scatter(xs_array, zs_array, color="red")
       
-  plt.xlabel("iterations")
-  plt.ylabel("lambda / chi2")
+  # plt.xlabel("iterations")
+  # plt.ylabel("lambda / chi2")
   plt.show()
   
 
 if __name__ == "__main__":
-  iters, chi2s, lambdas = parse_txt("docs/task1_1_result.txt")
+  iters, chi2s, lambdas = parse_txt("docs/task1_3_result.txt")
   draw_curve(iters, lambdas, chi2s)
   
   
