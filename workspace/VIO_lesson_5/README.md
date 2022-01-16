@@ -1,11 +1,3 @@
-# Questions
-
-why noalias()
-
-```c++
-                H.block(index_i, index_j, dim_i, dim_j).noalias() += hessian;
-```
-
 # Task 1
 
 ### Code
@@ -178,7 +170,7 @@ TestMonoBA.cpp文件，添加了额外的edge
 | 1e6        | 3     | 1.19186e-4 |
 | 1e9        | 3     | 1.21314e-4 |
 
-注意：相同代码多次运算得到的time cost差异很大，范围从(0.2ms ~ 0.6ms)波动，不具备参考价值。
+注意：相同代码多次运算得到的time cost差异很大，范围从(0.2ms ~ 0.8ms)波动，不具备参考价值。
 
 其中迭代次数与论文基本符合，先增加后减少
 
