@@ -1,0 +1,8 @@
+iter: 0 , chi= 36048.3 , Lambda= 1e-05
+iter: 1 , chi= 30216.8 , Lambda= 238.177
+iter: 2 , chi= 664.127 , Lambda= 291.105
+iter: 3 , chi= 122.439 , Lambda= 32.345
+iter: 4 , chi= 96.3465 , Lambda= 3.59388
+iter: 5 , chi= 91.5512 , Lambda= 0.399321
+iter: 6 , chi= 91.396 , Lambda= 0.0443689
+iter: 7 , chi= 91.3959 , Lambda= 0.00492988
