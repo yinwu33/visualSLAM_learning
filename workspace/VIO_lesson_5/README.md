@@ -72,35 +72,35 @@ TestMarginalze
 
 ### Result
 
-![](docs/task1.png)
+![](./docs/task1.png)
 
 # Task 2 Comparison of different approaches for gauge freedom
 
 一个general 的vio残差方程为
 
-![residual](docs/residual.png)
+![residual](./docs/residual.png)
 
 ## Method 1: fixing unobservable states to given values 
 
 ### Idea： 固定第一个camera pose的position和yaw angle
 
-![image-20220115101902172](docs/method1.png)
+![image-20220115101902172](./docs/method1.png)
 
 将这两个参数固定等价为，让对应的残差方程的Jacobian列向量为0，即不再优化
 
-![image-20220115102117252](docs/method1_2.png)
+![image-20220115102117252](./docs/method1_2.png)
 
 ## Method 2: setting a prior on unobservable states  
 
 ### Idea：对残差方程添加一个惩罚项
 
-![method2](docs/method2.png)
+![method2](./docs/method2.png)
 
 选择先验协方差的方法：
 
-![](docs/method2_1.png)
+![](./docs/method2_1.png)
 
-![](docs/method2_1_2.png)
+![](./docs/method2_1_2.png)
 
 这个方法，当wp=0的时候，等价于free gauge 方法(Method 3)，当wp为无穷的时候，为gauge fixation方法(Method 1)
 
@@ -112,7 +112,7 @@ TestMarginalze
 
 ### Accuracy:
 
-![](docs/accuracy.png)
+![](./docs/accuracy.png)
 
 如图所示，无论wp取多少，error都非常接近，同时随着wp上升，error趋近于固定值
 
@@ -120,7 +120,7 @@ TestMarginalze
 
 ### Computational Cost:
 
-![](docs/comput.png)
+![](./docs/comput.png)
 
 
 
