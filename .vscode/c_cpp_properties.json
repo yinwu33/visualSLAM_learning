@@ -5,7 +5,9 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "/usr/include/eigen3/**",
-                "/usr/local/include/opencv4"
+                "/usr/local/include/opencv4",
+                "/usr/include/pybind11",
+                "/usr/include/python3.8"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
